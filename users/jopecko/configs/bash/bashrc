@@ -1,0 +1,82 @@
+set -o notify    # report status of terminated background jobs immediately
+set -o noclobber # don't accidentally overwrite a file using redirection
+set -o ignoreeof # don't use ^D to exit
+#set -o nounset
+#set -o xtrace    # useful for debugging
+
+# https://coderwall.com/p/fasnya/add-git-branch-name-to-bash-prompt
+__git_ps1() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+# prompt coloring
+if [ $(/usr/bin/whoami) = "root" ]; then
+    # root has a red prompt
+    export PS1="\[\033[0;31m\]\u@\h \w \$ \[\033\0m\]"
+else
+    branch='$(__git_ps1)'
+    export PS1="\[\033[01;31m\]\h\[\033[01;33m\]:\W${branch} \[\033[01;36m\]\$\[\033[00m\] "
+fi
+
+[ -f $HOME/.java_profile ] && . $HOME/.java_profile
+[ -f $HOME/.env_vars ] && . $HOME/.env_vars # machine-dependent env vars
+
+if [ -f ~/.env ]; then
+  . ~/.env
+fi
+
+[ -d "$HOME/.bash" ] && for file in $(ls ~/.bash); do
+  . ~/.bash/$file
+done
+
+# Add some useful directories to our path
+paths="."
+#paths="$paths $HOME/bin"
+#paths="$paths /usr/local/sbin"
+
+# I commonly install utilities in $HOME/opt; find any
+# bin directories therein and add them to paths
+#for binDir in `find $HOME/opt -type d -name bin`; do
+#    paths="$paths $binDir"
+#done
+
+for path in $paths; do
+    # make sure this entry doesn't already exist in the PATH
+    if `echo $PATH | egrep $path'(\:|$)' >/dev/null 2>&1`; then
+	continue
+    fi
+    if [ -d $path ]; then
+	newpath=$newpath:$path
+    fi
+done
+
+PATH=`echo $PATH | sed -e 's/^\://' -e 's/\:/:/g'`
+
+# our path takes precedence over the one defined by the
+# parent process; therefore place the original at the end
+PATH="$newpath:$PATH"
+export PATH
+
+function start_agent {
+    echo "Initializing new SSH agent..."
+    /usr/bin/ssh-agent | sed 's/^echo/#echo/' >| "${SSH_ENV}"
+    echo succeeded
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
+    /usr/bin/ssh-add;
+}
+
+# Source SSH settings, if applicable
+if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}" > /dev/null
+    #ps ${SSH_AGENT_PID} doesn't work under cywgin
+    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+        start_agent;
+    }
+else
+    start_agent;
+fi
+
+# System-specific configuration
+host="${HOSTNAME%%.*}"
+[ -f ${HOME}/.${host}.env ] && . ${HOME}/.${host}.env
