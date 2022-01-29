@@ -2,18 +2,30 @@
 
 {
 
-  # Set your time zone.
-  time.timeZone = "America/Los_Angeles";
+  imports = [
+    ./wm/i3.nix
+  ];
 
   networking = {
     networkmanager.enable = true;
+
+    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+    # Per-interface useDHCP will be mandatory in the future, so this generated config
+    # replicates the default behavior.
+    useDHCP = false;
   };
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  # Set your time zone.
+  time.timeZone = "America/Los_Angeles";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -21,22 +33,15 @@
     firejail # restrict running env of untrusted apps using lxc
     vim
     wget
-  #   firefox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
 
   # enable Docker and VirtualBox support
   virtualisation = {
@@ -72,6 +77,9 @@
   services = {
     # Enable the OpenSSH daemon
     openssh.enable = true;
+
+    # SSH daemin
+    sshd.enable = true;
 
     # Enable CUPS
     printing = {
