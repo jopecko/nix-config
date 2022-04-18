@@ -76,7 +76,10 @@
 
   services = {
     # Enable the OpenSSH daemon
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      allowSFTP = true;
+    };
 
     # SSH daemin
     sshd.enable = true;
@@ -107,10 +110,14 @@
       options = "--delete-older-than 7d";
     };
 
+    package = pkgs.nixFlakes;
+    registry.nixpkgs.flake = inputs.nixpkgs;
+
     # Avoid unwanted garbage collection when using nix-direnv
     extraOptions = ''
       keep-outputs     = true
       keep-derivations = true
+      experimental-features = nix-command flakes
     '';
 
     # required by Cachix to be used as non-root user
@@ -120,7 +127,7 @@
   security = {
     sudo.configFile = ''
       Defaults lecture=always
-      Defaults lecture_file=${../../misc/groot.txt}
+      Defaults lecture_file=${misc/groot.txt}
     '';
   };
 
