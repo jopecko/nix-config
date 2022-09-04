@@ -197,6 +197,7 @@ in
       #ssh.enable = true;
       #starship.enable = true;
       tmux.enable = true;
+      urxvt.enable = true;
       xdg.enable = true;
     };
   };

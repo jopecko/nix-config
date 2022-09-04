@@ -12,6 +12,7 @@
     ./readline.nix
     ./ssh.nix
     ./tmux.nix
+    ./urxvt.nix
     ./xdg.nix
   ];
 }
