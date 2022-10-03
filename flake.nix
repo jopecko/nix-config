@@ -2,50 +2,122 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    # Nix ecossystem
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    hardware.url = "github:nixos/nixos-hardware";
+    nur.url = "github:nix-community/NUR";
+    impermanence.url = "github:nix-community/impermanence";
+    nix-colors.url = "github:misterio77/nix-colors";
 
     home-manager = {
       url = github:nix-community/home-manager;
-      inputs.nikpkgs.follows = "nixpkgs";
-    };
-
-    nurpkgs = {
-      url = github:nix-community/NUR;
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    nixos-hardware.url = github:NixOS/nixos-hardware/master;
 
     tex2nix = {
       url = github:Mic92/tex2nix;
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    sops-nix = {
+      url = "github:mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    neovim-nightly-overlay = {
+      url = "github:nix-community/neovim-nightly-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hyprland = {
+      url = "github:hyprwm/hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hyprwm-contrib = {
+      url = "github:hyprwm/contrib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs @ { self, nixpkgs, home-manager, nixos-hardware, nurpkgs, tex2nix }:
+  outputs = inputs:
     let
-      system = "x86_64-linux";
+      lib = import ./lib { inherit inputs; };
+      inherit (lib) mkSystem mkHome mkDeploys forAllSystems;
     in
-    {
-      homeConfigurations = {
-        import ./outputs/home-conf.nix {
-          inherit system nixpkgs home-manager nurpkgs tex2nix;
-        }
+    rec {
+      inherit lib;
+
+      overlays = {
+        default = import ./overlay { inherit inputs; };
+        nur = inputs.nur.overlay;
+        hyprland = inputs.hyprland.overlays.default;
+        hyprwm-contrib = inputs.hyprwm-contrib.overlays.default;
+        neovim-nightly-overlay = inputs.neovim-nightly-overlay.overlay;
+        sops-nix = inputs.sops-nix.overlay;
       };
 
+      nixosModules = import ./modules/nixos;
+      homeManagerModules = import ./modules/home-manager;
+
+      templates = import ./templates;
+
+      devShells = forAllSystems (system: {
+        default = legacyPackages.${system}.callPackage ./shell.nix { };
+      });
+
+      apps = forAllSystems (system: rec {
+        deploy = {
+          type = "app";
+          program = "${legacyPackages.${system}.deploy-rs}/bin/deploy";
+        };
+        default = deploy;
+      });
+
+      legacyPackages = forAllSystems (system:
+        import inputs.nixpkgs {
+          inherit system;
+          overlays = builtins.attrValues overlays;
+          config.allowUnfree = true;
+        }
+      );
+
       nixosConfigurations = {
-#        ikaika = nixpkgs.lib.nixosSystem {
-#          inherit system;
-#          specialArgs = { inherit inputs; };
-#          modules = [
-#            # ./machine/dell-xps13
-#            nixos-hardware.nixosModules.dell-xps-13-9310
-#            ./configuration.nix
-#          ];
-#        };
-#      };
-      import ./outputs/nixos-conf.nix {
-        inherit inputs system
-      }
+        # Dell XPS
+       ikaika = mkSystem {
+        hostname = "ikaika";
+        pkgs = legacyPackages."x86_64-linux";
+        persistence = false;
+       };
+      };
+
+      homeConfigurations = {
+        # Dell XPS
+        "jopecko@ikaika" = mkHome {
+          username = "jopecko";
+          hostname = "ikaika";
+          persistence = false;
+
+          features = [
+            "desktop/hyprland"
+            "laptop"
+            "trusted"
+          ];
+          colorscheme = "spaceduck";
+          wallpaper = "aurora-borealis-water-mountain";
+        };
+      };
+
+      deploy = {
+        nodes = mkDeploys nixosConfigurations homeConfigurations;
+        magicRollback = true;
+        autoRollback = true;
+      };
+
+      deployChecks = { };
     };
 }
