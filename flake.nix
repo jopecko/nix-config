@@ -89,9 +89,9 @@
       nixosConfigurations = {
         # Dell XPS
        ikaika = mkSystem {
-        hostname = "ikaika";
-        pkgs = legacyPackages."x86_64-linux";
-        persistence = false;
+         hostname = "ikaika";
+         pkgs = legacyPackages."x86_64-linux";
+         persistence = false;
        };
       };
 
