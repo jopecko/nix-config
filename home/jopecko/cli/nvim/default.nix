@@ -172,6 +172,9 @@
         '';
       }
     ];
+
+    viAlias = true;
+    vimAlias = true;
   };
 
   xdg.configFile."nvim/init.lua".onChange = ''
