@@ -77,7 +77,7 @@
           }
 
           input {
-            kb_layout=br
+            kb_layout=us
           }
           input:touchpad {
             disable_while_typing=false
