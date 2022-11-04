@@ -1,11 +1,12 @@
 { inputs, ... }:
 let
-  inherit (inputs) self home-manager nixpkgs deploy-rs;
+  inherit (inputs) self home-manager nixpkgs deploy-rs darwin;
   inherit (self) outputs;
 
   inherit (builtins) elemAt match any mapAttrs attrValues attrNames listToAttrs;
   inherit (nixpkgs.lib) nixosSystem filterAttrs genAttrs mapAttrs';
   inherit (home-manager.lib) homeManagerConfiguration;
+  inherit (darwin.lib) darwinSystem;
 
   activate = type: config: deploy-rs.lib.${config.pkgs.system}.activate.${type} config;
 in
@@ -38,6 +39,18 @@ rec {
         inherit inputs outputs hostname persistence;
       };
       modules = attrValues (import ../modules/nixos) ++ [ ../hosts/${hostname} ];
+    };
+
+  mkDarwinSystem =
+    { hostname
+    , pkgs
+    }:
+    darwinSystem {
+      inherit pkgs;
+      specialArgs = {
+        inherit inputs outputs hostname;
+      };
+      modules = attrValues (import ../modules/darwin) ++ [ ../hosts/${hostname} ];
     };
 
   mkHome =
@@ -77,7 +90,6 @@ rec {
         };
       })
       hostnames);
-
 
   mkNixosDeployProfile = _name: config: {
     user = "root";

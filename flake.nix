@@ -42,12 +42,17 @@
       url = "github:hyprwm/contrib";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    darwin = {
+      url = "github:LnL7/nix-darwin/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
     let
       lib = import ./lib { inherit inputs; };
-      inherit (lib) mkSystem mkHome mkDeploys forAllSystems;
+      inherit (lib) mkSystem mkHome mkDeploys forAllSystems mkDarwinSystem;
     in
     rec {
       inherit lib;
@@ -109,6 +114,14 @@
           ];
           colorscheme = "spaceduck";
           wallpaper = "aurora-borealis-water-mountain";
+        };
+      };
+
+      darwinConfigurations = {
+        # CB Laptop
+        jopecko-mb = mkDarwinSystem {
+          hostname = "jopecko-mb";
+          pkgs = legacyPackages."x86_64-darwin";
         };
       };
 

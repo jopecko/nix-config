@@ -14,6 +14,7 @@
 
   home = {
     inherit username;
+    # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "22.05";
     homeDirectory = "/home/${username}";
     sessionVariables = {
