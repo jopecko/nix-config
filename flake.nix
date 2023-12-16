@@ -8,6 +8,8 @@
     nur.url = "github:nix-community/NUR";
     impermanence.url = "github:nix-community/impermanence";
     nix-colors.url = "github:misterio77/nix-colors";
+    nix-index-database.url = "github:mic92/nix-index-database";
+    nil-language-server.url = "github:oxalica/nil";
 
     home-manager = {
       url = github:nix-community/home-manager;
@@ -44,7 +46,7 @@
     };
 
     darwin = {
-      url = "github:LnL7/nix-darwin/master";
+      url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -114,6 +116,16 @@
           ];
           colorscheme = "spaceduck";
           wallpaper = "aurora-borealis-water-mountain";
+        };
+        # Cb laptop
+        "jopecko@jopecko-mb" = mkHome {
+          username = "jopecko";
+          hostname = "jopecko-mb";
+          persistence = false;
+
+          features = [
+            #
+          ];
         };
       };
 

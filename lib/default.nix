@@ -4,7 +4,7 @@ let
   inherit (self) outputs;
 
   inherit (builtins) elemAt match any mapAttrs attrValues attrNames listToAttrs;
-  inherit (nixpkgs.lib) nixosSystem filterAttrs genAttrs mapAttrs';
+  inherit (nixpkgs.lib) nixosSystem filterAttrs genAttrs mapAttrs' optional optionals optionalAttrs;
   inherit (home-manager.lib) homeManagerConfiguration;
   inherit (darwin.lib) darwinSystem;
 
@@ -100,4 +100,12 @@ rec {
     user = getUsername name;
     path = activate "home-manager" config;
   };
+
+  /* Check if a hostPlatform.system is Darwin.
+
+     Example:
+         lib.isDarwin "x86_64-darwin"
+         => true
+  */
+  isDarwin = system: nixpkgs.lib.hasSuffix "darwin" system;
 }

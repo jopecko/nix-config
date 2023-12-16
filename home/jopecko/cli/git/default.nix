@@ -27,7 +27,8 @@ in
       co = "checkout";
       df = "diff";
       dc = "diff --cached";
-      lg = "log -p";
+      # Prettier `git log`
+      lg = "log --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
       lol = "log --graph --decorate --pretty=oneline --abbrev-commit";
       lola = "log --graph --decorate --pretty=oneline --abbrev-commit --all";
       ls = "ls-files";
@@ -178,5 +179,16 @@ in
     package = pkgs.gitAndTools.gitFull;
     userEmail = "jopecko@users.noreply.github.com";
     userName = "Joe O'Pecko";
+
+    # Prettier pager, adds syntax highlighting and line numbers
+    delta = {
+      enable = true;
+
+      options = {
+        navigate = true;
+        line-numbers = true;
+        conflictstyle = "diff3";
+      };
+    };
   };
 }
